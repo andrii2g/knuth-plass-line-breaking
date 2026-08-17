@@ -2,14 +2,10 @@
 # This .gitignore file was automatically created by Microsoft(R) Visual Studio.
 ################################################################################
 
-/src/KnuthPlass.Cli/obj
-/src/KnuthPlass.Core/obj
-/src/KnuthPlass.Rendering/obj
-/tests/KnuthPlass.Cli.Tests/bin/Debug/net10.0
-/tests/KnuthPlass.Cli.Tests/obj
-/tests/KnuthPlass.Core.Tests/bin/Debug/net10.0
-/tests/KnuthPlass.Core.Tests/obj
-/tests/KnuthPlass.Rendering.Tests/bin/Debug/net10.0
-/tests/KnuthPlass.Rendering.Tests/obj
-/.vs/knuth-plass-line-breaking.slnx/FileContentIndex
+/.vs
 /.lctc
+
+bin/
+obj/
+TestResults/
+artifacts/
