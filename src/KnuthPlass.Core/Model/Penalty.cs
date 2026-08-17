@@ -11,19 +11,11 @@ public sealed record Penalty : ParagraphItem
     /// <summary>
     /// Initializes a penalty item.
     /// </summary>
-    public Penalty(double width, int value, bool flagged)
+    public Penalty(double Width, int Value, bool Flagged)
     {
-        if (value is < ForcedBreak or > ForbiddenBreak)
-        {
-            throw new ArgumentOutOfRangeException(
-                nameof(value),
-                value,
-                $"Penalty values must be between {ForcedBreak} and {ForbiddenBreak}.");
-        }
-
-        Width = ModelValidation.FiniteNonNegative(width, nameof(width));
-        Value = value;
-        Flagged = flagged;
+        this.Width = ModelValidation.FiniteNonNegative(Width, nameof(Width));
+        this.Value = Value;
+        this.Flagged = Flagged;
     }
 
     public double Width { get; }
@@ -31,4 +23,14 @@ public sealed record Penalty : ParagraphItem
     public bool Flagged { get; }
     public bool IsForced => Value <= ForcedBreak;
     public bool IsForbidden => Value >= ForbiddenBreak;
+
+    /// <summary>
+    /// Deconstructs the documented public penalty values.
+    /// </summary>
+    public void Deconstruct(out double Width, out int Value, out bool Flagged)
+    {
+        Width = this.Width;
+        Value = this.Value;
+        Flagged = this.Flagged;
+    }
 }

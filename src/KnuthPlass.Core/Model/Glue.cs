@@ -8,14 +8,24 @@ public sealed record Glue : ParagraphItem
     /// <summary>
     /// Initializes a glue item.
     /// </summary>
-    public Glue(double width, double stretch, double shrink)
+    public Glue(double Width, double Stretch, double Shrink)
     {
-        Width = ModelValidation.FiniteNonNegative(width, nameof(width));
-        Stretch = ModelValidation.FiniteNonNegative(stretch, nameof(stretch));
-        Shrink = ModelValidation.FiniteNonNegative(shrink, nameof(shrink));
+        this.Width = ModelValidation.FiniteNonNegative(Width, nameof(Width));
+        this.Stretch = ModelValidation.FiniteNonNegative(Stretch, nameof(Stretch));
+        this.Shrink = ModelValidation.FiniteNonNegative(Shrink, nameof(Shrink));
     }
 
     public double Width { get; }
     public double Stretch { get; }
     public double Shrink { get; }
+
+    /// <summary>
+    /// Deconstructs the documented public glue values.
+    /// </summary>
+    public void Deconstruct(out double Width, out double Stretch, out double Shrink)
+    {
+        Width = this.Width;
+        Stretch = this.Stretch;
+        Shrink = this.Shrink;
+    }
 }

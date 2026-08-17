@@ -16,23 +16,24 @@ public sealed class Paragraph
     {
         ArgumentNullException.ThrowIfNull(items);
 
-        Items = items.ToImmutableArray();
-        if (Items.IsEmpty)
+        var sourceItems = items.ToImmutableArray();
+        if (sourceItems.IsEmpty)
         {
             throw new ArgumentException("A paragraph must contain items.", nameof(items));
         }
 
-        if (Items[^1] is not Penalty { IsForced: true })
+        if (sourceItems[^1] is not Penalty { IsForced: true })
         {
             throw new ArgumentException(
                 "A paragraph must end in a forced penalty.",
                 nameof(items));
         }
 
+        Items = NormalizeBoxes(sourceItems);
+
         Breakpoints = DiscoverBreakpoints(Items);
         Words = Items
             .OfType<Box>()
-            .OrderBy(box => box.SourceWordIndex)
             .Select(box => box.Text)
             .ToImmutableArray();
         HadLineBreaks = hadLineBreaks;
@@ -44,6 +45,22 @@ public sealed class Paragraph
     public bool HadLineBreaks { get; }
     public Breakpoint Start => Breakpoints[0];
     public Breakpoint End => Breakpoints[^1];
+
+    private static ImmutableArray<ParagraphItem> NormalizeBoxes(
+        ImmutableArray<ParagraphItem> items)
+    {
+        var normalized = ImmutableArray.CreateBuilder<ParagraphItem>(items.Length);
+        var sourceWordIndex = 0;
+
+        foreach (var item in items)
+        {
+            normalized.Add(item is Box box
+                ? new Box(box.Text, box.Width, sourceWordIndex++)
+                : item);
+        }
+
+        return normalized.MoveToImmutable();
+    }
 
     private static ImmutableArray<Breakpoint> DiscoverBreakpoints(
         ImmutableArray<ParagraphItem> items)
