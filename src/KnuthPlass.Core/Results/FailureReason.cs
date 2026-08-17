@@ -8,4 +8,5 @@ public enum FailureReason
     InvalidOptions = 0,
     NoFeasibleLayout = 1,
     NonFiniteDemerits = 2,
+    InvalidReconstruction = 3,
 }

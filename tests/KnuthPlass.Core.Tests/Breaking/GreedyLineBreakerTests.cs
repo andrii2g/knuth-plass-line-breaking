@@ -142,6 +142,7 @@ public sealed class GreedyLineBreakerTests
             item => Assert.False(item.Candidate.Metrics.IsFeasible));
     }
 
+
     [Fact]
     public void NonFiniteAccumulationReturnsTypedFailure()
     {
@@ -150,14 +151,24 @@ public sealed class GreedyLineBreakerTests
             new Box("four", 4),
             new Penalty(0, Penalty.ForcedBreak, false),
         ]);
+        var sink = new RecordingTraceSink();
 
         var result = new GreedyLineBreaker().Break(
             paragraph,
-            new LineBreakingOptions(4, LinePenalty: double.MaxValue));
+            new LineBreakingOptions(4, LinePenalty: double.MaxValue),
+            sink);
 
         Assert.False(result.IsSuccess);
         Assert.Equal(FailureReason.NonFiniteDemerits, result.FailureReason);
         Assert.Empty(result.Lines);
+        Assert.Equal(1, result.EvaluatedCandidates);
+        Assert.Equal(1, result.RejectedCandidates);
+        Assert.Equal(0, result.FeasibleCandidates);
+        Assert.Equal(
+            result.EvaluatedCandidates,
+            result.RejectedCandidates + result.FeasibleCandidates);
+        var rejection = Assert.Single(sink.Events.OfType<CandidateRejected>());
+        Assert.Equal(CandidateRejectionKind.NonFiniteDemerits, rejection.Reason);
     }
 
     [Fact]

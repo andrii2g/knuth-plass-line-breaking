@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using KnuthPlass.Core.Breaking;
 
 namespace KnuthPlass.Core.Tracing;
@@ -9,4 +10,32 @@ public abstract record TraceEvent;
 
 public sealed record CandidateEvaluated(CandidateLine Candidate) : TraceEvent;
 
-public sealed record CandidateRejected(CandidateLine Candidate) : TraceEvent;
+public sealed record CandidateRejected(
+    CandidateLine Candidate,
+    CandidateRejectionKind Reason = CandidateRejectionKind.Measurement) : TraceEvent;
+
+public sealed record StateUpdated(
+    CandidateLine Candidate,
+    double TotalDemerits,
+    int LineCount) : TraceEvent;
+
+public sealed record StateRetained(
+    CandidateLine Candidate,
+    double CandidateTotalDemerits,
+    double RetainedTotalDemerits,
+    int RetainedLineCount) : TraceEvent;
+
+public sealed record FinalStateSelected(
+    int BreakpointId,
+    FitnessClass Fitness,
+    double TotalDemerits,
+    int LineCount) : TraceEvent;
+
+public sealed record PathReconstructed(
+    ImmutableArray<int> BreakpointIds) : TraceEvent;
+
+public enum CandidateRejectionKind
+{
+    Measurement = 0,
+    NonFiniteDemerits = 1,
+}

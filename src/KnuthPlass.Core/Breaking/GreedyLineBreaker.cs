@@ -103,6 +103,7 @@ public sealed class GreedyLineBreaker : ILineBreaker
             }
             else
             {
+                var selectedCandidate = new CandidateLine(selected, previousFitness, previousBreakWasFlagged);
                 if (!LineDemeritCalculator.TryCalculate(
                         selected,
                         previousFitness,
@@ -110,6 +111,11 @@ public sealed class GreedyLineBreaker : ILineBreaker
                         options,
                         out var calculatedDemerits))
                 {
+                    feasibleCandidates--;
+                    rejectedCandidates++;
+                    trace?.Write(new CandidateRejected(
+                        selectedCandidate,
+                        CandidateRejectionKind.NonFiniteDemerits));
                     return LineBreakResult.Failed(
                         Name,
                         FailureReason.NonFiniteDemerits,
@@ -119,13 +125,17 @@ public sealed class GreedyLineBreaker : ILineBreaker
                 }
 
                 lineDemerits = calculatedDemerits;
-                previousFitness = selected.Fitness;
 
                 if (!hasOverfullLine)
                 {
                     accumulatedDemerits += calculatedDemerits;
                     if (!double.IsFinite(accumulatedDemerits))
                     {
+                        feasibleCandidates--;
+                        rejectedCandidates++;
+                        trace?.Write(new CandidateRejected(
+                            selectedCandidate,
+                            CandidateRejectionKind.NonFiniteDemerits));
                         return LineBreakResult.Failed(
                             Name,
                             FailureReason.NonFiniteDemerits,
@@ -136,14 +146,16 @@ public sealed class GreedyLineBreaker : ILineBreaker
 
                     lineAccumulatedDemerits = accumulatedDemerits;
                 }
+
+                previousFitness = selected.Fitness;
             }
 
             previousBreakWasFlagged = selected.IsFlagged;
             selectedBreakpoints.Add(selected.End.Id);
-            lines.Add(new BrokenLine(
+            lines.Add(BrokenLineFactory.Create(
                 lines.Count,
+                paragraph,
                 selected,
-                GetBoxes(paragraph, selected),
                 lineDemerits,
                 lineAccumulatedDemerits,
                 isOverfull));
@@ -193,21 +205,4 @@ public sealed class GreedyLineBreaker : ILineBreaker
         return false;
     }
 
-    private static ImmutableArray<Box> GetBoxes(
-        Paragraph paragraph,
-        LineMetrics metrics)
-    {
-        var boxes = ImmutableArray.CreateBuilder<Box>();
-        for (var index = metrics.StartItemIndex;
-             index < metrics.EndItemIndexExclusive;
-             index++)
-        {
-            if (paragraph.Items[index] is Box box)
-            {
-                boxes.Add(box);
-            }
-        }
-
-        return boxes.ToImmutable();
-    }
 }
