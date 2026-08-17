@@ -17,10 +17,20 @@ public sealed class KnuthPlassLineBreaker : ILineBreaker
     public LineBreakResult Break(
         Paragraph paragraph,
         LineBreakingOptions options,
-        ITraceSink? trace = null)
+        ITraceSink? trace = null) =>
+        Break(paragraph, options, trace, captureGraph: trace is not null);
+
+    public LineBreakResult Break(
+        Paragraph paragraph,
+        LineBreakingOptions options,
+        ITraceSink? trace,
+        bool captureGraph)
     {
         ArgumentNullException.ThrowIfNull(paragraph);
 
+        var graphEdges = captureGraph
+            ? ImmutableArray.CreateBuilder<BreakpointGraphEdge>()
+            : null;
         var resultTrace = trace is null ? null : new ResultTraceSink(trace);
         trace = resultTrace;
 
@@ -31,7 +41,8 @@ public sealed class KnuthPlassLineBreaker : ILineBreaker
                 FailureReason.InvalidOptions,
                 paragraph,
                 options,
-                trace: resultTrace?.CreateDocument(paragraph, options));
+                trace: resultTrace?.CreateDocument(paragraph, options),
+                graphEdges: graphEdges?.ToImmutable() ?? default);
         }
 
         var measurement = new LineMeasurement(paragraph);
@@ -129,6 +140,13 @@ public sealed class KnuthPlassLineBreaker : ILineBreaker
                     feasibleCandidates++;
 
                     var fitness = metrics.Fitness!.Value;
+                    graphEdges?.Add(new BreakpointGraphEdge(
+                        metrics.Start.Id,
+                        previousFitness,
+                        metrics.End.Id,
+                        fitness,
+                        lineDemerits,
+                        totalDemerits));
                     var next = new ActiveNode(
                         end,
                         fitness,
@@ -180,7 +198,8 @@ public sealed class KnuthPlassLineBreaker : ILineBreaker
                 evaluatedCandidates,
                 rejectedCandidates,
                 feasibleCandidates,
-                resultTrace?.CreateDocument(paragraph, options));
+                resultTrace?.CreateDocument(paragraph, options),
+                graphEdges?.ToImmutable() ?? default);
         }
 
         trace?.Write(new FinalStateSelected(
@@ -204,7 +223,8 @@ public sealed class KnuthPlassLineBreaker : ILineBreaker
                 evaluatedCandidates,
                 rejectedCandidates,
                 feasibleCandidates,
-                resultTrace?.CreateDocument(paragraph, options));
+                resultTrace?.CreateDocument(paragraph, options),
+                graphEdges?.ToImmutable() ?? default);
         }
 
         trace?.Write(new PathReconstructed(selectedBreakpointIds));
@@ -217,7 +237,8 @@ public sealed class KnuthPlassLineBreaker : ILineBreaker
             feasibleCandidates,
             paragraph,
             options,
-            resultTrace?.CreateDocument(paragraph, options));
+            resultTrace?.CreateDocument(paragraph, options),
+            graphEdges?.ToImmutable() ?? default);
     }
 
     private static ActiveNode? SelectFinalState(

@@ -1,7 +1,6 @@
 using System.Text;
 using KnuthPlass.Core.Breaking;
 using KnuthPlass.Core.Results;
-using KnuthPlass.Core.Tracing;
 
 namespace KnuthPlass.Rendering.Svg;
 
@@ -36,25 +35,26 @@ public sealed class BreakpointGraphSvgRenderer
             throw new ArgumentException("The breakpoint graph requires a Knuth-Plass result.", nameof(result));
         }
 
-        var trace = result.Trace ??
-            throw new InvalidOperationException("The breakpoint graph requires a traced result.");
+        if (!result.HasGraphEvidence)
+        {
+            throw new InvalidOperationException(
+                "The breakpoint graph requires captured graph evidence.");
+        }
+
         var selectedKeys = SelectedEdgeKeys(result);
-        var allEdges = trace.Events
-            .Select(item => item.Event)
-            .OfType<CandidateEvaluated>()
-            .Where(item => item.Candidate.Metrics.IsFeasible && item.LineDemerits is not null)
+        var allEdges = result.GraphEdges
             .Select(item => new GraphEdge(
-                item.Candidate.Metrics.Start.Id,
-                item.Candidate.PreviousFitness,
-                item.Candidate.Metrics.End.Id,
-                item.Candidate.Metrics.Fitness!.Value,
-                item.LineDemerits!.Value,
-                item.AccumulatedCandidateDemerits,
+                item.StartBreakpointId,
+                item.StartFitness,
+                item.EndBreakpointId,
+                item.EndFitness,
+                item.LineDemerits,
+                item.AccumulatedDemerits,
                 selectedKeys.Contains(new EdgeKey(
-                    item.Candidate.Metrics.Start.Id,
-                    item.Candidate.PreviousFitness,
-                    item.Candidate.Metrics.End.Id,
-                    item.Candidate.Metrics.Fitness.Value))))
+                    item.StartBreakpointId,
+                    item.StartFitness,
+                    item.EndBreakpointId,
+                    item.EndFitness))))
             .Distinct()
             .OrderBy(edge => edge.EndBreakpoint)
             .ThenBy(edge => edge.StartBreakpoint)
@@ -96,8 +96,14 @@ public sealed class BreakpointGraphSvgRenderer
         for (var edgeIndex = 0; edgeIndex < edges.Length; edgeIndex++)
         {
             var edge = edges[edgeIndex];
-            var start = Position(edge.StartBreakpoint, edge.StartFitness, trace.Breakpoints.Length);
-            var end = Position(edge.EndBreakpoint, edge.EndFitness, trace.Breakpoints.Length);
+            var start = Position(
+                edge.StartBreakpoint,
+                edge.StartFitness,
+                result.ParagraphBreakpoints.Length);
+            var end = Position(
+                edge.EndBreakpoint,
+                edge.EndFitness,
+                result.ParagraphBreakpoints.Length);
             var curveOffset = (edgeIndex % 5 - 2) * 6;
             var middleX = (start.X + end.X) / 2;
             var middleY = (start.Y + end.Y) / 2 + curveOffset;
@@ -118,7 +124,10 @@ public sealed class BreakpointGraphSvgRenderer
         var selectedNodeSet = selectedNodes.ToHashSet();
         foreach (var node in nodes)
         {
-            var position = Position(node.Breakpoint, node.Fitness, trace.Breakpoints.Length);
+            var position = Position(
+                node.Breakpoint,
+                node.Fitness,
+                result.ParagraphBreakpoints.Length);
             var nodeId = $"node-b{node.Breakpoint}-{FitnessToken(node.Fitness)}";
             builder.Append("<g id=\"").Append(nodeId).Append("\"><circle class=\"node")
                 .Append(selectedNodeSet.Contains(node) ? " selected" : string.Empty)

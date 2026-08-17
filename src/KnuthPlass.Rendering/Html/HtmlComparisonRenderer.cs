@@ -88,9 +88,13 @@ a{color:var(--accent);text-underline-offset:.18em}a:focus-visible{outline:3px so
             .Append("<strong>Demerits</strong> combine line badness, penalties, fitness transitions, and flagged-break costs across a path.</p>")
             .Append("<p>An overfull line is displayed for greedy termination but has no comparable score.</p></section>")
             .Append("<nav aria-label=\"Generated artifacts\"><h2>Artifacts</h2><ul>")
-            .Append("<li><a href=\"layout-comparison.svg\">Scaled line layout SVG</a></li>")
-            .Append("<li><a href=\"breakpoint-graph.svg\">Breakpoint graph SVG</a></li>")
-            .Append("<li><a href=\"summary.json\">Machine-readable JSON summary</a></li>");
+            .Append("<li><a href=\"layout-comparison.svg\">Scaled line layout SVG</a></li>");
+        if (ordered.Any(result => result.AlgorithmName == KnuthPlassLineBreaker.Name))
+        {
+            builder.Append("<li><a href=\"breakpoint-graph.svg\">Breakpoint graph SVG</a></li>");
+        }
+
+        builder.Append("<li><a href=\"summary.json\">Machine-readable JSON summary</a></li>");
         if (includeTraceLink)
         {
             builder.Append("<li><a href=\"trace.txt\">Decision trace</a></li>");

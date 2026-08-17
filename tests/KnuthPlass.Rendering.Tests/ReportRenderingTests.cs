@@ -5,6 +5,7 @@ using KnuthPlass.Core.Parsing;
 using KnuthPlass.Core.Results;
 using KnuthPlass.Core.Tracing;
 using KnuthPlass.Rendering.Html;
+using KnuthPlass.Rendering.Json;
 using KnuthPlass.Rendering.Svg;
 
 namespace KnuthPlass.Rendering.Tests;
@@ -22,6 +23,7 @@ public sealed class ReportRenderingTests
         var second = BreakBoth(paragraph, options);
         var htmlRenderer = new HtmlComparisonRenderer();
         var layoutRenderer = new LayoutComparisonSvgRenderer();
+        var jsonRenderer = new SummaryJsonRenderer();
         var graphRenderer = new BreakpointGraphSvgRenderer();
 
         var html = htmlRenderer.Render(paragraph, options, first, includeTraceLink: true);
@@ -213,6 +215,7 @@ public sealed class ReportRenderingTests
         var mismatchedCost = options with { LinePenalty = 11 };
         var htmlRenderer = new HtmlComparisonRenderer();
         var layoutRenderer = new LayoutComparisonSvgRenderer();
+        var jsonRenderer = new SummaryJsonRenderer();
 
         Assert.Throws<ArgumentException>(() =>
             htmlRenderer.Render(paragraph, mismatchedTarget, results));
@@ -222,6 +225,8 @@ public sealed class ReportRenderingTests
             htmlRenderer.Render(paragraph, mismatchedCost, results));
         Assert.Throws<ArgumentException>(() =>
             layoutRenderer.Render(mismatchedCost, results));
+        Assert.Throws<ArgumentException>(() =>
+            jsonRenderer.Render(paragraph, mismatchedCost, results));
         Assert.Throws<ArgumentException>(() =>
             htmlRenderer.Render(
                 new Paragraph(
@@ -251,25 +256,30 @@ public sealed class ReportRenderingTests
     }
 
     [Fact]
-    public void GraphRequiresCapturedKnuthPlassTrace()
+    public void GraphUsesCapturedProjectionWithoutTrace()
     {
         var paragraph = SpecialParagraph();
         var options = new LineBreakingOptions(6, LastLineMode: LastLineMode.Justified);
-        var untraced = new KnuthPlassLineBreaker().Break(paragraph, options);
-        var greedy = new GreedyLineBreaker().Break(
+        var withoutEvidence = new KnuthPlassLineBreaker().Break(paragraph, options);
+        var untraced = new KnuthPlassLineBreaker().Break(
             paragraph,
             options,
-            new InMemoryTraceSink());
-        var traced = new KnuthPlassLineBreaker().Break(
-            paragraph,
-            options,
-            new InMemoryTraceSink());
+            trace: null,
+            captureGraph: true);
+        var greedy = new GreedyLineBreaker().Break(paragraph, options);
         var renderer = new BreakpointGraphSvgRenderer();
 
-        Assert.Throws<InvalidOperationException>(() => renderer.Render(untraced));
+        Assert.Null(withoutEvidence.Trace);
+        Assert.False(withoutEvidence.HasGraphEvidence);
+        Assert.Empty(withoutEvidence.GraphEdges);
+        Assert.Throws<InvalidOperationException>(() => renderer.Render(withoutEvidence));
+        Assert.Null(untraced.Trace);
+        Assert.True(untraced.HasGraphEvidence);
+        Assert.NotEmpty(untraced.GraphEdges);
+        _ = XDocument.Parse(renderer.Render(untraced));
         Assert.Throws<ArgumentException>(() => renderer.Render(greedy));
         Assert.Throws<ArgumentOutOfRangeException>(() =>
-            renderer.Render(traced, new BreakpointGraphRenderOptions(0)));
+            renderer.Render(untraced, new BreakpointGraphRenderOptions(0)));
     }
 
     private static Paragraph SpecialParagraph() =>

@@ -35,6 +35,8 @@ public sealed class SummaryJsonRenderer
             throw new ArgumentException("Algorithm names must be unique.", nameof(results));
         }
 
+        RenderInputValidation.Validate(options, orderedResults, paragraph);
+
         orderedResults = orderedResults
             .OrderBy(result => result.AlgorithmName == GreedyLineBreaker.Name ? 0
                 : result.AlgorithmName == KnuthPlassLineBreaker.Name ? 1 : 2)

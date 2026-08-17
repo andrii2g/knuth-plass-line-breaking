@@ -22,7 +22,8 @@ public sealed class LineBreakResult
         int feasibleCandidates,
         Paragraph paragraph,
         LineBreakingOptions? options,
-        TraceDocument? trace)
+        TraceDocument? trace,
+        ImmutableArray<BreakpointGraphEdge> graphEdges)
     {
         AlgorithmName = algorithmName;
         IsSuccess = isSuccess;
@@ -33,9 +34,14 @@ public sealed class LineBreakResult
         RejectedCandidates = rejectedCandidates;
         FeasibleCandidates = feasibleCandidates;
         ParagraphItems = paragraph.Items;
+        ParagraphBreakpoints = paragraph.Breakpoints;
         ParagraphHadLineBreaks = paragraph.HadLineBreaks;
         Options = options;
         Trace = trace;
+        HasGraphEvidence = !graphEdges.IsDefault;
+        GraphEdges = graphEdges.IsDefault
+            ? ImmutableArray<BreakpointGraphEdge>.Empty
+            : graphEdges;
     }
 
     public string AlgorithmName { get; }
@@ -48,10 +54,13 @@ public sealed class LineBreakResult
     public int RejectedCandidates { get; }
     public int FeasibleCandidates { get; }
     public ImmutableArray<ParagraphItem> ParagraphItems { get; }
+    public ImmutableArray<Breakpoint> ParagraphBreakpoints { get; }
     public bool ParagraphHadLineBreaks { get; }
     public LineBreakingOptions? Options { get; }
     public ParagraphMetrics? Metrics { get; private set; }
     public TraceDocument? Trace { get; }
+    public bool HasGraphEvidence { get; }
+    public ImmutableArray<BreakpointGraphEdge> GraphEdges { get; }
     public ImmutableArray<SequencedTraceEvent> TraceEvents =>
         Trace?.Events ?? ImmutableArray<SequencedTraceEvent>.Empty;
 
@@ -64,7 +73,8 @@ public sealed class LineBreakResult
         int feasibleCandidates,
         Paragraph paragraph,
         LineBreakingOptions? options,
-        TraceDocument? trace = null)
+        TraceDocument? trace = null,
+        ImmutableArray<BreakpointGraphEdge> graphEdges = default)
     {
         var result = new LineBreakResult(
             algorithmName,
@@ -77,7 +87,8 @@ public sealed class LineBreakResult
             feasibleCandidates,
             paragraph,
             options,
-            trace);
+            trace,
+            graphEdges);
 
         result.Metrics = MetricsCalculator.Calculate(result);
         return result;
@@ -91,7 +102,8 @@ public sealed class LineBreakResult
         int evaluatedCandidates = 0,
         int rejectedCandidates = 0,
         int feasibleCandidates = 0,
-        TraceDocument? trace = null) =>
+        TraceDocument? trace = null,
+        ImmutableArray<BreakpointGraphEdge> graphEdges = default) =>
         new(
             algorithmName,
             false,
@@ -103,5 +115,6 @@ public sealed class LineBreakResult
             feasibleCandidates,
             paragraph,
             options,
-            trace);
+            trace,
+            graphEdges);
 }
