@@ -21,9 +21,15 @@ public sealed class KnuthPlassLineBreaker : ILineBreaker
     {
         ArgumentNullException.ThrowIfNull(paragraph);
 
+        var resultTrace = trace is null ? null : new ResultTraceSink(trace);
+        trace = resultTrace;
+
         if (!TryValidateOptions(options))
         {
-            return LineBreakResult.Failed(Name, FailureReason.InvalidOptions);
+            return LineBreakResult.Failed(
+                Name,
+                FailureReason.InvalidOptions,
+                trace: resultTrace?.CreateDocument(paragraph, options));
         }
 
         var measurement = new LineMeasurement(paragraph);
@@ -72,13 +78,14 @@ public sealed class KnuthPlassLineBreaker : ILineBreaker
                     var candidate = new CandidateLine(
                         metrics,
                         previousFitness,
-                        previousFlagged);
+                        previousFlagged,
+                        predecessor.LineCount);
 
                     evaluatedCandidates++;
-                    trace?.Write(new CandidateEvaluated(candidate));
 
                     if (!metrics.IsFeasible)
                     {
+                        trace?.Write(new CandidateEvaluated(candidate));
                         rejectedCandidates++;
                         trace?.Write(new CandidateRejected(
                             candidate,
@@ -93,6 +100,7 @@ public sealed class KnuthPlassLineBreaker : ILineBreaker
                             options,
                             out var lineDemerits))
                     {
+                        trace?.Write(new CandidateEvaluated(candidate));
                         encounteredNonFiniteDemerits = true;
                         rejectedCandidates++;
                         trace?.Write(new CandidateRejected(
@@ -104,6 +112,7 @@ public sealed class KnuthPlassLineBreaker : ILineBreaker
                     var totalDemerits = predecessor.TotalDemerits + lineDemerits;
                     if (!double.IsFinite(totalDemerits))
                     {
+                        trace?.Write(new CandidateEvaluated(candidate, lineDemerits));
                         encounteredNonFiniteDemerits = true;
                         rejectedCandidates++;
                         trace?.Write(new CandidateRejected(
@@ -111,6 +120,10 @@ public sealed class KnuthPlassLineBreaker : ILineBreaker
                             CandidateRejectionKind.NonFiniteDemerits));
                         continue;
                     }
+                    trace?.Write(new CandidateEvaluated(
+                        candidate,
+                        lineDemerits,
+                        totalDemerits));
                     feasibleCandidates++;
 
                     var fitness = metrics.Fitness!.Value;
@@ -131,7 +144,8 @@ public sealed class KnuthPlassLineBreaker : ILineBreaker
                         trace?.Write(new StateUpdated(
                             candidate,
                             totalDemerits,
-                            next.LineCount));
+                            next.LineCount,
+                            lineDemerits));
                     }
                     else
                     {
@@ -139,7 +153,8 @@ public sealed class KnuthPlassLineBreaker : ILineBreaker
                             candidate,
                             totalDemerits,
                             incumbent.TotalDemerits,
-                            incumbent.LineCount));
+                            incumbent.LineCount,
+                            lineDemerits));
                     }
                 }
             }
@@ -160,7 +175,8 @@ public sealed class KnuthPlassLineBreaker : ILineBreaker
                     : FailureReason.NoFeasibleLayout,
                 evaluatedCandidates,
                 rejectedCandidates,
-                feasibleCandidates);
+                feasibleCandidates,
+                resultTrace?.CreateDocument(paragraph, options));
         }
 
         trace?.Write(new FinalStateSelected(
@@ -181,7 +197,8 @@ public sealed class KnuthPlassLineBreaker : ILineBreaker
                 FailureReason.InvalidReconstruction,
                 evaluatedCandidates,
                 rejectedCandidates,
-                feasibleCandidates);
+                feasibleCandidates,
+                resultTrace?.CreateDocument(paragraph, options));
         }
 
         trace?.Write(new PathReconstructed(selectedBreakpointIds));
@@ -189,10 +206,10 @@ public sealed class KnuthPlassLineBreaker : ILineBreaker
             Name,
             lines,
             selectedBreakpointIds,
-            final.TotalDemerits,
             evaluatedCandidates,
             rejectedCandidates,
-            feasibleCandidates);
+            feasibleCandidates,
+            resultTrace?.CreateDocument(paragraph, options));
     }
 
     private static ActiveNode? SelectFinalState(

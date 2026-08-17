@@ -8,7 +8,10 @@ namespace KnuthPlass.Core.Tracing;
 /// </summary>
 public abstract record TraceEvent;
 
-public sealed record CandidateEvaluated(CandidateLine Candidate) : TraceEvent;
+public sealed record CandidateEvaluated(
+    CandidateLine Candidate,
+    double? LineDemerits = null,
+    double? AccumulatedCandidateDemerits = null) : TraceEvent;
 
 public sealed record CandidateRejected(
     CandidateLine Candidate,
@@ -17,13 +20,15 @@ public sealed record CandidateRejected(
 public sealed record StateUpdated(
     CandidateLine Candidate,
     double TotalDemerits,
-    int LineCount) : TraceEvent;
+    int LineCount,
+    double LineDemerits = 0) : TraceEvent;
 
 public sealed record StateRetained(
     CandidateLine Candidate,
     double CandidateTotalDemerits,
     double RetainedTotalDemerits,
-    int RetainedLineCount) : TraceEvent;
+    int RetainedLineCount,
+    double LineDemerits = 0) : TraceEvent;
 
 public sealed record FinalStateSelected(
     int BreakpointId,

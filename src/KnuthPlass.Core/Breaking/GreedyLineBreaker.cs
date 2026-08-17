@@ -20,9 +20,15 @@ public sealed class GreedyLineBreaker : ILineBreaker
     {
         ArgumentNullException.ThrowIfNull(paragraph);
 
+        var resultTrace = trace is null ? null : new ResultTraceSink(trace);
+        trace = resultTrace;
+
         if (!TryValidateOptions(options))
         {
-            return LineBreakResult.Failed(Name, FailureReason.InvalidOptions);
+            return LineBreakResult.Failed(
+                Name,
+                FailureReason.InvalidOptions,
+                trace: resultTrace?.CreateDocument(paragraph, options));
         }
 
         var measurement = new LineMeasurement(paragraph);
@@ -51,10 +57,33 @@ public sealed class GreedyLineBreaker : ILineBreaker
                 var candidate = new CandidateLine(
                     metrics,
                     previousFitness,
-                    previousBreakWasFlagged);
+                    previousBreakWasFlagged,
+                    lines.Count);
 
                 evaluatedCandidates++;
-                trace?.Write(new CandidateEvaluated(candidate));
+
+                double? traceLineDemerits = null;
+                double? traceAccumulatedDemerits = null;
+                if (metrics.IsFeasible
+                    && LineDemeritCalculator.TryCalculate(
+                        metrics,
+                        previousFitness,
+                        previousBreakWasFlagged,
+                        options,
+                        out var calculatedTraceDemerits))
+                {
+                    traceLineDemerits = calculatedTraceDemerits;
+                    var candidateTotal = accumulatedDemerits + calculatedTraceDemerits;
+                    if (!hasOverfullLine && double.IsFinite(candidateTotal))
+                    {
+                        traceAccumulatedDemerits = candidateTotal;
+                    }
+                }
+
+                trace?.Write(new CandidateEvaluated(
+                    candidate,
+                    traceLineDemerits,
+                    traceAccumulatedDemerits));
 
                 if (metrics.IsFeasible)
                 {
@@ -89,7 +118,8 @@ public sealed class GreedyLineBreaker : ILineBreaker
                     FailureReason.NoFeasibleLayout,
                     evaluatedCandidates,
                     rejectedCandidates,
-                    feasibleCandidates);
+                    feasibleCandidates,
+                    resultTrace?.CreateDocument(paragraph, options));
             }
 
             selected = measurement.Measure(current, selected.End, options);
@@ -103,7 +133,11 @@ public sealed class GreedyLineBreaker : ILineBreaker
             }
             else
             {
-                var selectedCandidate = new CandidateLine(selected, previousFitness, previousBreakWasFlagged);
+                var selectedCandidate = new CandidateLine(
+                    selected,
+                    previousFitness,
+                    previousBreakWasFlagged,
+                    lines.Count);
                 if (!LineDemeritCalculator.TryCalculate(
                         selected,
                         previousFitness,
@@ -121,7 +155,8 @@ public sealed class GreedyLineBreaker : ILineBreaker
                         FailureReason.NonFiniteDemerits,
                         evaluatedCandidates,
                         rejectedCandidates,
-                        feasibleCandidates);
+                        feasibleCandidates,
+                        resultTrace?.CreateDocument(paragraph, options));
                 }
 
                 lineDemerits = calculatedDemerits;
@@ -141,7 +176,8 @@ public sealed class GreedyLineBreaker : ILineBreaker
                             FailureReason.NonFiniteDemerits,
                             evaluatedCandidates,
                             rejectedCandidates,
-                            feasibleCandidates);
+                            feasibleCandidates,
+                            resultTrace?.CreateDocument(paragraph, options));
                     }
 
                     lineAccumulatedDemerits = accumulatedDemerits;
@@ -166,10 +202,10 @@ public sealed class GreedyLineBreaker : ILineBreaker
             Name,
             lines.ToImmutable(),
             selectedBreakpoints.ToImmutable(),
-            hasOverfullLine ? null : accumulatedDemerits,
             evaluatedCandidates,
             rejectedCandidates,
-            feasibleCandidates);
+            feasibleCandidates,
+            resultTrace?.CreateDocument(paragraph, options));
     }
 
     private static bool TryValidateOptions(LineBreakingOptions? options)

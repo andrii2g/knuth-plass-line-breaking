@@ -8,4 +8,5 @@ namespace KnuthPlass.Core.Breaking;
 public sealed record CandidateLine(
     LineMetrics Metrics,
     FitnessClass? PreviousFitness,
-    bool PreviousBreakWasFlagged);
+    bool PreviousBreakWasFlagged,
+    int LineNumber = 0);
