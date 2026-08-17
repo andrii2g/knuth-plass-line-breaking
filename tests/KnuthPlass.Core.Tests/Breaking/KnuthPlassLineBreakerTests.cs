@@ -145,10 +145,10 @@ public sealed class KnuthPlassLineBreakerTests
 
         Assert.True(greedy.IsSuccess);
         Assert.True(optimal.IsSuccess);
-        Assert.NotNull(greedy.TotalDemerits);
-        Assert.NotEqual(
-            greedy.SelectedBreakpointIds.ToArray(),
-            optimal.SelectedBreakpointIds.ToArray());
+        Assert.Equal([0, 5, 10, 15, 22, 24], greedy.SelectedBreakpointIds.ToArray());
+        Assert.Equal([0, 5, 10, 15, 21, 24], optimal.SelectedBreakpointIds.ToArray());
+        Assert.Equal(13312.5, greedy.TotalDemerits!.Value, 8);
+        Assert.Equal(1481.46, optimal.TotalDemerits!.Value, 8);
         Assert.True(optimal.TotalDemerits < greedy.TotalDemerits);
     }
 

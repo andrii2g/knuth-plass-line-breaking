@@ -51,7 +51,7 @@ Snapshot stable structural output for one tiny paragraph. Avoid snapshotting hug
 
 ## Flagship regression
 
-`examples/global-vs-greedy.txt` must be tuned only through text/width selection, not by algorithm-specific options, so that greedy and DP select different feasible paths and DP has strictly lower total demerits. Once discovered, freeze its target width and expected paths in a test; numeric totals should use tolerances in unit tests and canonical serialization in golden tests.
+`examples/global-vs-greedy.txt` is frozen at target width 32 with default algorithm options. Greedy selects `[0, 5, 10, 15, 22, 24]` for 13,312.50 demerits; DP selects `[0, 5, 10, 15, 21, 24]` for 1,481.46 demerits. The regression asserts both paths and tolerant numeric totals, while JSON tests cover canonical serialization.
 
 ## Commands
 
