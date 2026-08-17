@@ -1,0 +1,1 @@
+Global optimization may accept a slightly looser early line when that choice prevents an awkward and expensive line near the end of the paragraph.

@@ -1,0 +1,1 @@
+Penalty nodes make optional forced and forbidden break opportunities explicit.
