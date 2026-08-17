@@ -55,7 +55,7 @@ sequenceDiagram
 
 `LineBreakResult` contains algorithm name, status, immutable `BrokenLine` collection, selected breakpoint IDs, paragraph metrics, candidate counters, and trace events when enabled. A failed result contains a typed `FailureReason` and diagnostics but no partial line collection presented as success.
 
-`BrokenLine` contains source item/index boundaries, ordered boxes, natural/target/rendered widths, stretch, shrink, ratio, badness, line demerits, accumulated demerits, fitness, break penalty, and flags such as `IsLast` and `IsOverfull`.
+`BrokenLine` contains source item/index boundaries, ordered boxes, the exact normalized layout-item span, the selected endpoint penalty, natural/target/rendered widths, stretch, shrink, ratio, badness, line demerits, accumulated demerits, fitness, break penalty, and flags such as `IsLast` and `IsOverfull`.
 
 ## Determinism
 
@@ -72,7 +72,7 @@ Expected failures use result/validation types, not exceptions: invalid options, 
 
 ## Security and robustness
 
-Input is untrusted text. Enforce a configurable maximum input length and breakpoint graph threshold. Escape HTML/XML; do not interpolate text into CSS, element IDs, paths, or JavaScript. Resolve outputs beneath the requested output directory with fixed filenames. Do not overwrite the input file when output and input directories overlap.
+Input is untrusted text. Enforce a configurable maximum input length and breakpoint graph threshold. Escape HTML/XML and replace characters forbidden by XML 1.0 with U+FFFD; do not interpolate text into CSS, element IDs, paths, or JavaScript. Renderers reject options, paragraphs, or target widths that do not match the captured successful results. Resolve outputs beneath the requested output directory with fixed filenames. Do not overwrite the input file when output and input directories overlap.
 
 ## Architecture decisions
 

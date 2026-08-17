@@ -80,7 +80,7 @@ Show target-width rulers and one group per line. Boxes are rectangles sized by t
 g'=\begin{cases}g+r\,s&r\ge0\\g+r\,h&r<0\end{cases}
 \]
 
-Annotate ratio, badness, and fitness. Include title/description elements for accessibility. Overfull greedy lines use a visible hatch or outline plus text label.
+A selected positive-width penalty is rendered after the normalized line items. If the formula yields a negative glue width, render it as a backward overlap span and advance the following item by that signed amount; never silently clamp it to zero. Annotate ratio, badness, and fitness. Include title/description elements for accessibility. Overfull greedy lines use a visible hatch or outline plus text label.
 
 ## `breakpoint-graph.svg`
 
