@@ -307,7 +307,7 @@ public sealed class LineMeasurement
         }
     }
 
-    private static void ValidateOptions(LineBreakingOptions options)
+    internal static void ValidateOptions(LineBreakingOptions options)
     {
         ArgumentNullException.ThrowIfNull(options);
 

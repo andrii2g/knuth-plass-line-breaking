@@ -28,6 +28,11 @@ public sealed class Paragraph
                 "A paragraph must end in a forced penalty.",
                 nameof(items));
         }
+        if (!sourceItems.Any(item => item is Box))
+        {
+            throw new ArgumentException("A paragraph must contain at least one box.", nameof(items));
+        }
+
 
         Items = NormalizeBoxes(sourceItems);
 

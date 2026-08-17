@@ -83,5 +83,7 @@ public sealed class ParagraphModelTests
         Assert.Throws<ArgumentException>(() => new Paragraph([]));
         Assert.Throws<ArgumentException>(
             () => new Paragraph([new Box("word", 4), new Penalty(0, 0, false)]));
+        Assert.Throws<ArgumentException>(
+            () => new Paragraph([new Penalty(0, Penalty.ForcedBreak, false)]));
     }
 }
