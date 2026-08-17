@@ -29,6 +29,8 @@ public sealed class KnuthPlassLineBreaker : ILineBreaker
             return LineBreakResult.Failed(
                 Name,
                 FailureReason.InvalidOptions,
+                paragraph,
+                options,
                 trace: resultTrace?.CreateDocument(paragraph, options));
         }
 
@@ -173,6 +175,8 @@ public sealed class KnuthPlassLineBreaker : ILineBreaker
                 encounteredNonFiniteDemerits
                     ? FailureReason.NonFiniteDemerits
                     : FailureReason.NoFeasibleLayout,
+                paragraph,
+                options,
                 evaluatedCandidates,
                 rejectedCandidates,
                 feasibleCandidates,
@@ -195,6 +199,8 @@ public sealed class KnuthPlassLineBreaker : ILineBreaker
             return LineBreakResult.Failed(
                 Name,
                 FailureReason.InvalidReconstruction,
+                paragraph,
+                options,
                 evaluatedCandidates,
                 rejectedCandidates,
                 feasibleCandidates,
@@ -209,6 +215,8 @@ public sealed class KnuthPlassLineBreaker : ILineBreaker
             evaluatedCandidates,
             rejectedCandidates,
             feasibleCandidates,
+            paragraph,
+            options,
             resultTrace?.CreateDocument(paragraph, options));
     }
 

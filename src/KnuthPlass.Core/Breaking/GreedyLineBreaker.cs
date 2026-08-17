@@ -28,6 +28,8 @@ public sealed class GreedyLineBreaker : ILineBreaker
             return LineBreakResult.Failed(
                 Name,
                 FailureReason.InvalidOptions,
+                paragraph,
+                options,
                 trace: resultTrace?.CreateDocument(paragraph, options));
         }
 
@@ -116,6 +118,8 @@ public sealed class GreedyLineBreaker : ILineBreaker
                 return LineBreakResult.Failed(
                     Name,
                     FailureReason.NoFeasibleLayout,
+                    paragraph,
+                    options,
                     evaluatedCandidates,
                     rejectedCandidates,
                     feasibleCandidates,
@@ -153,6 +157,8 @@ public sealed class GreedyLineBreaker : ILineBreaker
                     return LineBreakResult.Failed(
                         Name,
                         FailureReason.NonFiniteDemerits,
+                        paragraph,
+                        options,
                         evaluatedCandidates,
                         rejectedCandidates,
                         feasibleCandidates,
@@ -174,6 +180,8 @@ public sealed class GreedyLineBreaker : ILineBreaker
                         return LineBreakResult.Failed(
                             Name,
                             FailureReason.NonFiniteDemerits,
+                            paragraph,
+                            options,
                             evaluatedCandidates,
                             rejectedCandidates,
                             feasibleCandidates,
@@ -205,6 +213,8 @@ public sealed class GreedyLineBreaker : ILineBreaker
             evaluatedCandidates,
             rejectedCandidates,
             feasibleCandidates,
+            paragraph,
+            options,
             resultTrace?.CreateDocument(paragraph, options));
     }
 

@@ -13,4 +13,6 @@ public sealed record BrokenLine(
     ImmutableArray<Box> Boxes,
     double? LineDemerits,
     double? AccumulatedDemerits,
-    bool IsOverfull);
+    bool IsOverfull,
+    ImmutableArray<ParagraphItem> LayoutItems = default,
+    Penalty? SelectedPenalty = null);

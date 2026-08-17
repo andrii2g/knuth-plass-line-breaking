@@ -1,5 +1,7 @@
 using System.Collections.Immutable;
+using KnuthPlass.Core.Breaking;
 using KnuthPlass.Core.Metrics;
+using KnuthPlass.Core.Model;
 using KnuthPlass.Core.Tracing;
 
 namespace KnuthPlass.Core.Results;
@@ -18,6 +20,8 @@ public sealed class LineBreakResult
         int evaluatedCandidates,
         int rejectedCandidates,
         int feasibleCandidates,
+        Paragraph paragraph,
+        LineBreakingOptions? options,
         TraceDocument? trace)
     {
         AlgorithmName = algorithmName;
@@ -28,6 +32,9 @@ public sealed class LineBreakResult
         EvaluatedCandidates = evaluatedCandidates;
         RejectedCandidates = rejectedCandidates;
         FeasibleCandidates = feasibleCandidates;
+        ParagraphItems = paragraph.Items;
+        ParagraphHadLineBreaks = paragraph.HadLineBreaks;
+        Options = options;
         Trace = trace;
     }
 
@@ -40,6 +47,9 @@ public sealed class LineBreakResult
     public int EvaluatedCandidates { get; }
     public int RejectedCandidates { get; }
     public int FeasibleCandidates { get; }
+    public ImmutableArray<ParagraphItem> ParagraphItems { get; }
+    public bool ParagraphHadLineBreaks { get; }
+    public LineBreakingOptions? Options { get; }
     public ParagraphMetrics? Metrics { get; private set; }
     public TraceDocument? Trace { get; }
     public ImmutableArray<SequencedTraceEvent> TraceEvents =>
@@ -52,6 +62,8 @@ public sealed class LineBreakResult
         int evaluatedCandidates,
         int rejectedCandidates,
         int feasibleCandidates,
+        Paragraph paragraph,
+        LineBreakingOptions? options,
         TraceDocument? trace = null)
     {
         var result = new LineBreakResult(
@@ -63,6 +75,8 @@ public sealed class LineBreakResult
             evaluatedCandidates,
             rejectedCandidates,
             feasibleCandidates,
+            paragraph,
+            options,
             trace);
 
         result.Metrics = MetricsCalculator.Calculate(result);
@@ -72,6 +86,8 @@ public sealed class LineBreakResult
     internal static LineBreakResult Failed(
         string algorithmName,
         FailureReason failureReason,
+        Paragraph paragraph,
+        LineBreakingOptions? options,
         int evaluatedCandidates = 0,
         int rejectedCandidates = 0,
         int feasibleCandidates = 0,
@@ -85,5 +101,7 @@ public sealed class LineBreakResult
             evaluatedCandidates,
             rejectedCandidates,
             feasibleCandidates,
+            paragraph,
+            options,
             trace);
 }

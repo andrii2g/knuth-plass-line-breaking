@@ -15,10 +15,12 @@ internal static class BrokenLineFactory
         bool isOverfull)
     {
         var boxes = ImmutableArray.CreateBuilder<Box>();
+        var layoutItems = ImmutableArray.CreateBuilder<ParagraphItem>();
         for (var index = metrics.StartItemIndex;
              index < metrics.EndItemIndexExclusive;
              index++)
         {
+            layoutItems.Add(paragraph.Items[index]);
             if (paragraph.Items[index] is Box box)
             {
                 boxes.Add(box);
@@ -31,6 +33,8 @@ internal static class BrokenLineFactory
             boxes.ToImmutable(),
             lineDemerits,
             accumulatedDemerits,
-            isOverfull);
+            isOverfull,
+            layoutItems.ToImmutable(),
+            paragraph.Items[metrics.End.ItemIndex] as Penalty);
     }
 }

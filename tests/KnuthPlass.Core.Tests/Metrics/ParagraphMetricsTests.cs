@@ -79,9 +79,9 @@ public sealed class ParagraphMetricsTests
     [Fact]
     public void SuccessfulFactoryRejectsInconsistentLineScoreStates()
     {
-        var valid = new KnuthPlassLineBreaker().Break(
-            ThreeWordParagraph(),
-            new LineBreakingOptions(5));
+        var paragraph = ThreeWordParagraph();
+        var options = new LineBreakingOptions(5);
+        var valid = new KnuthPlassLineBreaker().Break(paragraph, options);
         var incompleteFeasible = valid.Lines.SetItem(
             0,
             valid.Lines[0] with { LineDemerits = null });
@@ -92,16 +92,19 @@ public sealed class ParagraphMetricsTests
             valid.SelectedBreakpointIds,
             valid.EvaluatedCandidates,
             valid.RejectedCandidates,
-            valid.FeasibleCandidates));
+            valid.FeasibleCandidates,
+            paragraph,
+            options));
 
         var overfullParagraph = new Paragraph(
         [
             new Box("toolong", 10),
             new Penalty(0, Penalty.ForcedBreak, false),
         ]);
+        var overfullOptions = new LineBreakingOptions(4);
         var overfull = new GreedyLineBreaker().Break(
             overfullParagraph,
-            new LineBreakingOptions(4));
+            overfullOptions);
         var scoredOverfull = overfull.Lines.SetItem(
             0,
             overfull.Lines[0] with
@@ -116,7 +119,9 @@ public sealed class ParagraphMetricsTests
             overfull.SelectedBreakpointIds,
             overfull.EvaluatedCandidates,
             overfull.RejectedCandidates,
-            overfull.FeasibleCandidates));
+            overfull.FeasibleCandidates,
+            overfullParagraph,
+            overfullOptions));
     }
 
     private static Paragraph ThreeWordParagraph() =>
