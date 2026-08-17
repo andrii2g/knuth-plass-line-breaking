@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/KnuthPlass.Cli/KnuthPlass.Cli.csproj" />
+    <Project Path="src/KnuthPlass.Core/KnuthPlass.Core.csproj" />
+    <Project Path="src/KnuthPlass.Rendering/KnuthPlass.Rendering.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/KnuthPlass.Cli.Tests/KnuthPlass.Cli.Tests.csproj" />
+    <Project Path="tests/KnuthPlass.Core.Tests/KnuthPlass.Core.Tests.csproj" />
+    <Project Path="tests/KnuthPlass.Rendering.Tests/KnuthPlass.Rendering.Tests.csproj" />
+  </Folder>
+</Solution>
