@@ -174,7 +174,7 @@ This is a shortest path through an acyclic graph whose vertices carry the necess
 
 At each start breakpoint, evaluate later legal breaks in order. Retain the farthest feasible candidate encountered before an overflow makes later ordinary candidates impossible. Stop at forced breaks. If no candidate is feasible because one box exceeds the width, take the earliest break that consumes at least one box and mark the line `Overfull`; this gives the baseline a terminating, visible behavior. The DP may instead return `NoFeasibleLayout` under strict mode; expose the distinction in output.
 
-Greedy's chosen lines are measured and scored using the same formulas. Its `TotalDemerits` is the demerit sum along its fixed path, including fitness and flagged transitions; it is not a DP result.
+Every feasible line chosen by greedy is measured and scored using the same formulas. Its `TotalDemerits` is the demerit sum along its fixed path, including fitness and flagged transitions; it is not a DP result. If the explicit overfull fallback is used, the shared measurement remains rejected and supplies no feasible badness or fitness. That line's demerits, its accumulated demerits, and the result total are therefore undefined (`null`), making the layout visible but non-comparable rather than inventing a score.
 
 ## 10. Complexity
 
